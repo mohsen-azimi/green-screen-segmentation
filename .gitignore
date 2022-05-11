@@ -3,4 +3,4 @@ __pycache__/
 .DS_Store
 git.txt
 .idea
-.png
+*.png
