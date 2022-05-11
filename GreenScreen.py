@@ -51,6 +51,7 @@ cv2.createTrackbar('save', 'control', 0, 1, nothing)
 # Get the latest generated file from the output directory
 if len(os.listdir('output/output')) == 0:
     i = 0
+
 else:
     list_of_created = glob.glob('output/image/*')  # * means all if need specific format then *.csv
     latest_file = max(list_of_created, key=os.path.getctime)
