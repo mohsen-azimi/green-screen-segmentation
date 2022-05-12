@@ -5,7 +5,7 @@ import os
 
 # Label ids of the dataset (BGR)
 mask_colors = {
-    "circular": (255, 0, 0),
+    "circular": (0, 255, 0),
     "rectangular": (255, 0, 0),
     "girder": (255, 255, 0),
 }
@@ -53,13 +53,15 @@ if len(os.listdir('output/output')) == 0:
     i = 0
 
 else:
-    list_of_created = glob.glob('output/image/*')  # * means all if need specific format then *.csv
+    list_of_created = glob.glob('output/output/*')  # * means all if need specific format then *.csv
     latest_file = max(list_of_created, key=os.path.getctime)
     i = int(latest_file.split()[1][:-4])
 
 while True:
 
     ret, input_frame = video.read()
+
+    input_frame = cv2.imread("output/input/frame 0.jpg")
 
     input_frame = cv2.resize(input_frame, (w, h))
     lab_background = cv2.resize(lab_background, (w, h))
@@ -103,10 +105,10 @@ while True:
 
     if s == 1:
         print(f"Saving the image {i} ...")
-        cv2.imwrite(f'output/input/frame {i}.png', input_frame)
+        cv2.imwrite(f'output/input/frame {i}.jpg', input_frame)
         cv2.imwrite(f'output/binary_mask/frame {i}.png', mask)
         cv2.imwrite(f'output/color_mask/frame {i}.png', mask2)
-        cv2.imwrite(f'output/output/frame {i}.png', image)
+        cv2.imwrite(f'output/output/frame {i}.jpg', image)
         # cv2.imwrite('output/mask.png', mask)
         i += 1
         s = cv2.setTrackbarPos('save', 'control', 0)
