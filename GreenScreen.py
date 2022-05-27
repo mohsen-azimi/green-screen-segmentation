@@ -2,11 +2,15 @@ import cv2
 import numpy as np
 import glob
 import os
+from Weighted_Average_Effect import *
+
+
 
 # Label ids of the dataset (BGR)
 mask_colors = {
     "circular": (0, 255, 0),
-    "rectangular": (255, 0, 0),
+    "circular2": (255, 0, 0),
+    "rectangular": (0, 0, 255),
     "girder": (255, 255, 0),
 }
 ''' "(0, 0, 0)": 0,  # outlier
@@ -19,9 +23,14 @@ mask_colors = {
     "(0, 255, 0)": 7,  # ...
     "(128, 128, 128)": 8  # ...'''
 
-object_color = mask_colors["circular"]
+object_color = mask_colors["rectangular"]
 
-video = cv2.VideoCapture(-1)
+
+w, h = 640*2, 480*2
+cap = cv2.VideoCapture(1)
+# Set a smaller resolution
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
 
 lab_background = cv2.imread("rgb.png")
 
@@ -33,7 +42,6 @@ def nothing(x):
 cv2.namedWindow('control')
 cv2.resizeWindow('control', 500, 500)
 
-w, h = 640, 480
 cv2.createTrackbar("LH", "control", 0, 255, nothing)
 cv2.createTrackbar('LS', "control", 0, 255, nothing)
 cv2.createTrackbar("LV", "control", 0, 255, nothing)
@@ -41,10 +49,10 @@ cv2.createTrackbar("UH", "control", 255, 255, nothing)
 cv2.createTrackbar("US", "control", 255, 255, nothing)
 cv2.createTrackbar("UV", "control", 40, 255, nothing)
 
-cv2.createTrackbar("crop_T", "control", 173, int(h / 2), nothing)
-cv2.createTrackbar("crop_B", "control", 30, int(h / 2), nothing)
-cv2.createTrackbar("crop_L", "control", 155, int(w / 2), nothing)
-cv2.createTrackbar("crop_R", "control", 190, int(w / 2), nothing)
+cv2.createTrackbar("crop_T", "control", 427, int(h / 2), nothing)
+cv2.createTrackbar("crop_B", "control", 190, int(h / 2), nothing)
+cv2.createTrackbar("crop_L", "control", 640, int(w / 2), nothing)
+cv2.createTrackbar("crop_R", "control", 435, int(w / 2), nothing)
 
 cv2.createTrackbar('save', 'control', 0, 1, nothing)
 
@@ -56,13 +64,22 @@ else:
     latest_file = max(list_of_created, key=os.path.getctime)
     i = int(latest_file.split()[1][:-4])
 
+
+
+average_buffer = AverageBuffer(5)
+weighted_buffer = WeightedAverageBuffer(5)
+
 while True:
 
-    ret, input_frame = video.read()
+    _, rgb_frame = cap.read()
 
-    # input_frame = cv2.imread("output/input/frame 0.jpg")
+    rgb_frame = cv2.resize(rgb_frame, (w, h))
+    frame_f32 = rgb_frame.astype('float32')
+    average_buffer.apply(frame_f32)
+    weighted_buffer.apply(frame_f32)
 
-    input_frame = cv2.resize(input_frame, (w, h))
+    rgb_frame = average_buffer.get_frame()
+
     lab_background = cv2.resize(lab_background, (w, h))
 
     l_green = np.array([cv2.getTrackbarPos("LH", "control"),
@@ -73,7 +90,7 @@ while True:
                         cv2.getTrackbarPos("US", "control"),
                         cv2.getTrackbarPos("UV", "control")])
 
-    mask = cv2.inRange(input_frame, l_green, u_green)
+    mask = cv2.inRange(rgb_frame, l_green, u_green)
     mask = cv2.bitwise_not(mask)  # invert mask; i.e., 255-mask
     crop = np.array([cv2.getTrackbarPos("crop_T", "control"),
                      cv2.getTrackbarPos("crop_B", "control"),
@@ -93,18 +110,18 @@ while True:
     mask_colored = np.zeros([h, w, 3], dtype=np.uint8)
     mask_colored[:, :] = [object_color[0], object_color[1], object_color[2]]
 
-    res = cv2.bitwise_and(input_frame, input_frame, mask=cv2.bitwise_not(mask))  # invert back the mask
-    image = input_frame - res
+    res = cv2.bitwise_and(rgb_frame, rgb_frame, mask=cv2.bitwise_not(mask))  # invert back the mask
+    image = rgb_frame - res
     image = np.where(image == 0, lab_background, image)
-    mask2 = np.where((input_frame - res) == 0, np.zeros([h, w, 3], dtype=np.uint8), mask_colored)
+    mask2 = np.where((rgb_frame - res) == 0, np.zeros([h, w, 3], dtype=np.uint8), mask_colored)
 
-    cv2.imshow("input_frame", np.vstack((input_frame, image, mask2)) )
+    cv2.imshow("input_frame", np.hstack((rgb_frame, image, mask2)) )
 
     s = cv2.getTrackbarPos('save', 'control')
 
     if s == 1:
         print(f"Saving the image {i} ...")
-        cv2.imwrite(f'output/input/frame {i}.jpg', input_frame)
+        cv2.imwrite(f'input/frame {i}.jpg', rgb_frame)
         cv2.imwrite(f'output/binary_mask/frame {i}.png', mask)
         cv2.imwrite(f'output/color_mask/frame {i}.png', mask2)
         cv2.imwrite(f'output/output/frame {i}.jpg', image)
