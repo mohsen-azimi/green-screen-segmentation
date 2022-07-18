@@ -1,6 +1,10 @@
 ## Collect Segmentation Data Using Green Screen
 These simple codes use OpenCV tools to create segmentation (ground truth) dataset. Press `ESC` to stop the code.
 
+
+
+
+
 Create the output directories before running the code:
 
 └───output

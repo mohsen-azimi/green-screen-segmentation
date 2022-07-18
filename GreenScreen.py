@@ -32,7 +32,7 @@ cap = cv2.VideoCapture(1)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
 
-lab_background = cv2.imread("rgb.png")
+background = cv2.imread("rgb1.jpg")
 
 
 def nothing(x):
@@ -80,7 +80,7 @@ while True:
 
     rgb_frame = average_buffer.get_frame()
 
-    lab_background = cv2.resize(lab_background, (w, h))
+    background = cv2.resize(background, (w, h))
 
     l_green = np.array([cv2.getTrackbarPos("LH", "control"),
                         cv2.getTrackbarPos("LS", "control"),
@@ -112,7 +112,7 @@ while True:
 
     res = cv2.bitwise_and(rgb_frame, rgb_frame, mask=cv2.bitwise_not(mask))  # invert back the mask
     image = rgb_frame - res
-    image = np.where(image == 0, lab_background, image)
+    image = np.where(image == 0, background, image)
     mask2 = np.where((rgb_frame - res) == 0, np.zeros([h, w, 3], dtype=np.uint8), mask_colored)
 
     cv2.imshow("input_frame", np.hstack((rgb_frame, image, mask2)) )
