@@ -26,13 +26,13 @@ mask_colors = {
 object_color = mask_colors["rectangular"]
 
 
-w, h = 640*2, 480*2
+w, h = 640, 480
 cap = cv2.VideoCapture(1)
 # Set a smaller resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
 
-background = cv2.imread("rgb1.jpg")
+background = cv2.imread("rgb2.jpg")
 
 
 def nothing(x):
@@ -40,7 +40,7 @@ def nothing(x):
 
 
 cv2.namedWindow('control')
-cv2.resizeWindow('control', 500, 500)
+# cv2.resizeWindow('control', 500, 500)
 
 cv2.createTrackbar("LH", "control", 0, 255, nothing)
 cv2.createTrackbar('LS', "control", 0, 255, nothing)
@@ -49,10 +49,10 @@ cv2.createTrackbar("UH", "control", 255, 255, nothing)
 cv2.createTrackbar("US", "control", 255, 255, nothing)
 cv2.createTrackbar("UV", "control", 40, 255, nothing)
 
-cv2.createTrackbar("crop_T", "control", 427, int(h / 2), nothing)
-cv2.createTrackbar("crop_B", "control", 190, int(h / 2), nothing)
-cv2.createTrackbar("crop_L", "control", 640, int(w / 2), nothing)
-cv2.createTrackbar("crop_R", "control", 435, int(w / 2), nothing)
+cv2.createTrackbar("crop_T", "control", 10, int(h / 2), nothing)
+cv2.createTrackbar("crop_B", "control", 10, int(h / 2), nothing)
+cv2.createTrackbar("crop_L", "control", 10, int(w / 2), nothing)
+cv2.createTrackbar("crop_R", "control", 10, int(w / 2), nothing)
 
 cv2.createTrackbar('save', 'control', 0, 1, nothing)
 
